@@ -1,0 +1,15 @@
+{
+  "name": "api-first",
+  "version": "1.0.0",
+  "description": "Creando una API FIRST con el curso de platzi",
+  "keywords": [
+    "API"
+  ],
+  "license": "MIT",
+  "author": "Jefred Bedoya",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
