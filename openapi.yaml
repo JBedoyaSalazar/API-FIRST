@@ -6,6 +6,15 @@ info:
 servers:
   - url: "http://localhost:3000"
     description: "Local server"
+
+components:
+  schemas:
+    RootResponse:
+      type: string
+
+    HelloResponse:
+      type: object
+
 paths:
   /: 
     get:
@@ -27,11 +36,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HelloResponse"
-
-components:
-  schemas:
-    RootResponse:
-      type: string
-
-    HelloResponse:
-      type: object
+  /users:
+    post:
+      summary: Crea un usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+               - name
+               - age
+               - email
+              properties:
+                name:
+                  type: string
+                  description: Nombre del usuario
+                  minLength: 2
+                age:
+                  type: integer
+                  description: Edad del usuario
+                  minimum: 18
+                  maximum: 120
+                email:
+                  type: string
+                  description: Correo electrónico del usuario
+                  format: email
+      responses:
+        201:
+          description: "Usuario creado exitosamente"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  age:
+                    type: integer
+                  email:
+                    type: string

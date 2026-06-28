@@ -8,6 +8,7 @@ const port = 3000;
 
 const swaggerDocument = YAML.load("./openapi.yaml");
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use(express.json())
 
 app.use(OpenApiValidator.middleware({
     apiSpec: swaggerDocument,
@@ -24,15 +25,26 @@ app.use((err, req, res, next) => {
     });
 });
 
+app.get("/", (req, res) => {
+    res.send(`
+        <h1>Welcome to my API</h1>
+        `)
+})
+
 
 app.get("/hello", (req, res) => {
     res.json({ message: "Hello World" });
 });
 
-app.get("/", (req, res) => {
-    res.send(`
-        <h1>Welcome to my API</h1>
-        `)
+app.post("/users", (req, res) => {
+    const { name, age, email } = req.body
+    const newUser = {
+        id: crypto.randomUUID(),
+        name,
+        age,
+        email
+    }
+    res.status(201).json(newUser)
 })
 
 app.listen(port, () => {
