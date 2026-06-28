@@ -9,11 +9,76 @@ servers:
 
 components:
   schemas:
+
     RootResponse:
       type: string
 
     HelloResponse:
       type: object
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        age:
+          type: integer
+        email:
+          type: string
+          format: email
+
+    CreateUserRequest:
+      type: object
+      required:
+        - name
+        - age
+        - email
+      properties:
+        name:
+          type: string
+          description: Nombre del usuario
+          minLength: 2
+
+        age:
+          type: integer
+          description: Edad del usuario
+          minimum: 18
+          maximum: 120
+
+        email:
+          type: string
+          description: Correo electrónico
+          format: email
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Nombre del usuario
+          minLength: 2
+
+        age:
+          type: integer
+          description: Edad del usuario
+          minimum: 18
+          maximum: 120
+
+        email:
+          type: string
+          description: Correo electrónico
+          format: email
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        code:
+          type: string
 
 paths:
   /: 
@@ -26,6 +91,7 @@ paths:
             text/html:
               schema:
                 $ref: "#/components/schemas/RootResponse"
+  
   /hello:
     get:
       summary: Hello World
@@ -36,6 +102,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HelloResponse"
+  
   /users:
     post:
       summary: Crea un usuario
@@ -44,39 +111,66 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-               - name
-               - age
-               - email
-              properties:
-                name:
-                  type: string
-                  description: Nombre del usuario
-                  minLength: 2
-                age:
-                  type: integer
-                  description: Edad del usuario
-                  minimum: 18
-                  maximum: 120
-                email:
-                  type: string
-                  description: Correo electrónico del usuario
-                  format: email
+              $ref: "#/components/schemas/CreateUserRequest"
       responses:
         201:
           description: "Usuario creado exitosamente"
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    format: uuid
-                  name:
-                    type: string
-                  age:
-                    type: integer
-                  email:
-                    type: string
+                $ref: "#/components/schemas/User"
+  
+  /users/{id}:
+    get:
+      summary: Obtiene un usuario por id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Id del usuario
+      responses:
+        200:
+          description: "Usuario obtenido exitosamente"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        404:
+          description: "Usuario no encontrado"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      summary: Actualiza parcialmente un usuario
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Id del usuario
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        200:
+          description: Usuario actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        404:
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
