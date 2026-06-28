@@ -7,6 +7,16 @@ servers:
   - url: "http://localhost:3000"
     description: "Local server"
 paths:
+  /: 
+    get:
+      summary: Welcome
+      responses:
+        200:
+          description: "A succesful response"
+          content:
+            text/html:
+              schema:
+                $ref: "#/components/schemas/RootResponse"
   /hello:
     get:
       summary: Hello World
@@ -17,7 +27,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HelloResponse"
+
 components:
   schemas:
+    RootResponse:
+      type: string
+
     HelloResponse:
       type: object
