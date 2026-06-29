@@ -34,9 +34,12 @@ components:
 
     RootResponse:
       type: string
+      example: "FAKEAPI STORE UP AND RUNNING"
 
     HelloResponse:
       type: object
+      example:
+        message: "Hola Mundo"
 
     User:
       type: object
@@ -44,13 +47,17 @@ components:
         id:
           type: string
           format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
         name:
           type: string
+          example: "Ana García"
         age:
           type: integer
+          example: 28
         email:
           type: string
           format: email
+          example: "ana.garcia@gmail.com"
 
     CreateUserRequest:
       type: object
@@ -63,17 +70,20 @@ components:
           type: string
           description: Nombre del usuario
           minLength: 2
+          example: "Carlos López"
 
         age:
           type: integer
           description: Edad del usuario
           minimum: 18
           maximum: 120
+          example: 35
 
         email:
           type: string
           description: Correo electrónico
           format: email
+          example: "carlos.lopez@empresa.com"
 
     UpdateUserRequest:
       type: object
@@ -82,25 +92,30 @@ components:
           type: string
           description: Nombre del usuario
           minLength: 2
+          example: "Carlos López Actualizado"
 
         age:
           type: integer
           description: Edad del usuario
           minimum: 18
           maximum: 120
+          example: 36
 
         email:
           type: string
           description: Correo electrónico
           format: email
+          example: "c.lopez@nuevaempresa.com"
 
     ErrorResponse:
       type: object
       properties:
         message:
           type: string
+          example: "Recurso no encontrado"
         code:
           type: string
+          example: "NOT_FOUND"
 
     Product:
       type: object
@@ -113,15 +128,18 @@ components:
         id:
           type: string
           format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
         name:
           type: string
           minLength: 2
           maxLength: 40
           description: Nombre del producto
+          example: "Laptop Dell XPS 13"
         description:
           type: string
           maxLength: 200
           description: Descripción del producto
+          example: "Laptop ultraligera de 13 pulgadas con procesador Intel Core i7 y 16GB de RAM."
         category:
           $ref: "#/components/schemas/ProductCategory"
         price:
@@ -129,6 +147,7 @@ components:
           multipleOf: 0.01
           exclusiveMinimum: 0
           description: Precio del producto
+          example: 1299.99
         tags:
           type: array
           items:
@@ -136,14 +155,20 @@ components:
           minItems: 1
           uniqueItems: true
           description: Tags del producto
+          example: ["laptop", "computadora", "dell", "tecnología"]
         inStock:
           type: boolean
           description: Indica si el producto está en stock
+          example: true
         specifications:
           type: object
           additionalProperties:
             type: string
           description: Especificaciones del producto
+          example: 
+            color: "Plata"
+            peso: "1.2 kg"
+            pantalla: "OLED"
         ratings:
           type: array
           items:
@@ -157,6 +182,7 @@ components:
         - Hogar
         - Deportes
         - Juguetes
+      example: "Electrónica"
 
     Rating:
       type: object
@@ -168,9 +194,11 @@ components:
           type: integer
           minimum: 1
           maximum: 5
+          example: 5
         comment:
           type: string
           maxLength: 255
+          example: "Excelente producto, superó mis expectativas."
 
     CreateProductRequest:
       type: object
@@ -185,10 +213,12 @@ components:
           minLength: 2
           maxLength: 40
           description: Nombre del producto
+          example: "Silla de Oficina Ergonómica"
         description:
           type: string
           maxLength: 200
           description: Descripción del producto
+          example: "Silla con soporte lumbar ajustable y diseño de malla transpirable."
         category:
           $ref: "#/components/schemas/ProductCategory"
         price:
@@ -196,6 +226,7 @@ components:
           multipleOf: 0.01
           exclusiveMinimum: 0
           description: Precio del producto
+          example: 150.50
         tags:
           type: array
           items:
@@ -203,14 +234,19 @@ components:
           minItems: 1
           uniqueItems: true
           description: Tags del producto
+          example: ["muebles", "oficina", "ergonomía"]
         inStock:
           type: boolean
           description: Indica si el producto está en stock
+          example: true
         specifications:
           type: object
           additionalProperties:
             type: string
           description: Especificaciones del producto
+          example:
+            material: "Malla y plástico"
+            carga_maxima: "120 kg"
 
     UpdateProductRequest:
       type: object
@@ -220,10 +256,12 @@ components:
           minLength: 2
           maxLength: 40
           description: Nombre del producto
+          example: "Silla de Oficina Ergonómica Pro"
         description:
           type: string
           maxLength: 200
           description: Descripción del producto
+          example: "Silla con soporte lumbar ajustable, brazos 3D y malla premium."
         category:
           $ref: "#/components/schemas/ProductCategory"
         price:
@@ -231,6 +269,7 @@ components:
           multipleOf: 0.01
           exclusiveMinimum: 0
           description: Precio del producto
+          example: 180.00
         tags:
           type: array
           items:
@@ -238,14 +277,19 @@ components:
           minItems: 1
           uniqueItems: true
           description: Tags del producto
+          example: ["muebles", "oficina", "ergonomía", "premium"]
         inStock:
           type: boolean
           description: Indica si el producto está en stock
+          example: false
         specifications:
           type: object
           additionalProperties:
             type: string
           description: Especificaciones del producto
+          example:
+            material: "Malla premium y aluminio"
+            carga_maxima: "150 kg"
 
 paths:
   /: 
@@ -258,6 +302,10 @@ paths:
             text/html:
               schema:
                 $ref: "#/components/schemas/RootResponse"
+              examples:
+                default:
+                  summary: Respuesta base
+                  value: "FAKEAPI STORE UP AND RUNNING"
   
   /hello:
     get:
@@ -269,6 +317,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HelloResponse"
+              examples:
+                exito:
+                  summary: Saludo estándar
+                  value:
+                    message: "Hola Mundo"
   
   /users:
     post:
@@ -281,6 +334,13 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateUserRequest"
+            examples:
+              creacion:
+                summary: Ejemplo de creación de usuario
+                value:
+                  name: "Laura Martínez"
+                  age: 32
+                  email: "laura.martinez@empresa.com"
       responses:
         201:
           description: "Usuario creado exitosamente"
@@ -288,6 +348,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+              examples:
+                exito:
+                  summary: Usuario creado
+                  value:
+                    id: "44444444-4444-4444-4444-444444444444"
+                    name: "Laura Martínez"
+                    age: 32
+                    email: "laura.martinez@empresa.com"
   
   /users/{id}:
     get:
@@ -302,6 +370,7 @@ paths:
             type: string
             format: uuid
           description: Id del usuario
+          example: "550e8400-e29b-41d4-a716-446655440000"
       responses:
         200:
           description: "Usuario obtenido exitosamente"
@@ -309,12 +378,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+              examples:
+                encontrado:
+                  summary: Usuario devuelto
+                  value:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    name: "Ana García"
+                    age: 28
+                    email: "ana.garcia@gmail.com"
         404:
           description: "Usuario no encontrado"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                noEncontrado:
+                  summary: Usuario inexistente
+                  value:
+                    message: "Usuario no encontrado en la base de datos"
+                    code: "USER_NOT_FOUND"
 
     patch:
       tags:
@@ -328,12 +411,18 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateUserRequest"
+            examples:
+              actualizacion:
+                summary: Actualizar edad del usuario
+                value:
+                  age: 29
       responses:
         200:
           description: Usuario actualizado exitosamente
@@ -341,12 +430,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+              examples:
+                actualizado:
+                  summary: Usuario tras actualización
+                  value:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    name: "Ana García"
+                    age: 29
+                    email: "ana.garcia@gmail.com"
         404:
           description: Usuario no encontrado
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                noEncontrado:
+                  summary: Usuario inexistente
+                  value:
+                    message: "Usuario no encontrado para actualizar"
+                    code: "USER_NOT_FOUND"
 
   /products:
     get:
@@ -362,6 +465,24 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Product"
+              examples:
+                listaProductos:
+                  summary: Lista con un producto
+                  value:
+                    - id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                      name: "Laptop Dell XPS 13"
+                      description: "Laptop ultraligera de 13 pulgadas con procesador Intel Core i7 y 16GB de RAM."
+                      category: "Electrónica"
+                      price: 1299.99
+                      tags: ["laptop", "computadora", "dell", "tecnología"]
+                      inStock: true
+                      specifications:
+                        color: "Plata"
+                        peso: "1.2 kg"
+                        pantalla: "OLED"
+                      ratings:
+                        - score: 5
+                          comment: "Excelente producto, superó mis expectativas."
     post:
       tags:
         - products
@@ -372,6 +493,19 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateProductRequest"
+            examples:
+              creacion:
+                summary: Creación de silla de oficina
+                value:
+                  name: "Silla de Oficina Ergonómica"
+                  description: "Silla con soporte lumbar ajustable y diseño de malla transpirable."
+                  category: "Hogar"
+                  price: 150.50
+                  tags: ["muebles", "oficina", "ergonomía"]
+                  inStock: true
+                  specifications:
+                    material: "Malla y plástico"
+                    carga_maxima: "120 kg"
       responses:
         201:
           description: Producto creado exitosamente
@@ -379,6 +513,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
+              examples:
+                creado:
+                  summary: Producto recién creado
+                  value:
+                    id: "77777777-7777-7777-7777-777777777777"
+                    name: "Silla de Oficina Ergonómica"
+                    description: "Silla con soporte lumbar ajustable y diseño de malla transpirable."
+                    category: "Hogar"
+                    price: 150.50
+                    tags: ["muebles", "oficina", "ergonomía"]
+                    inStock: true
+                    specifications:
+                      material: "Malla y plástico"
+                      carga_maxima: "120 kg"
+                    ratings: []
 
   /products/{id}:
     get:
@@ -393,6 +542,7 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
       responses:
         200:
           description: Producto obtenido exitosamente
@@ -400,12 +550,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
+              examples:
+                encontrado:
+                  summary: Producto obtenido
+                  value:
+                    id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    name: "Laptop Dell XPS 13"
+                    description: "Laptop ultraligera de 13 pulgadas con procesador Intel Core i7 y 16GB de RAM."
+                    category: "Electrónica"
+                    price: 1299.99
+                    tags: ["laptop", "computadora", "dell", "tecnología"]
+                    inStock: true
+                    specifications:
+                      color: "Plata"
+                      peso: "1.2 kg"
+                      pantalla: "OLED"
+                    ratings:
+                      - score: 5
+                        comment: "Excelente producto, superó mis expectativas."
         404:
           description: Producto no encontrado
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                noEncontrado:
+                  summary: Producto inexistente
+                  value:
+                    message: "Producto no encontrado en el sistema"
+                    code: "PRODUCT_NOT_FOUND"
 
     put:
       tags:
@@ -419,12 +593,26 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateProductRequest"
+            examples:
+              reemplazo:
+                summary: Reemplazar producto existente
+                value:
+                  name: "Silla de Oficina Ergonómica Pro"
+                  description: "Silla con soporte lumbar ajustable, brazos 3D y malla premium."
+                  category: "Hogar"
+                  price: 180.00
+                  tags: ["muebles", "oficina", "ergonomía", "premium"]
+                  inStock: false
+                  specifications:
+                    material: "Malla premium y aluminio"
+                    carga_maxima: "150 kg"
       responses:
         200:
           description: Producto reemplazado exitosamente
@@ -432,12 +620,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
+              examples:
+                reemplazado:
+                  summary: Producto reemplazado
+                  value:
+                    id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    name: "Silla de Oficina Ergonómica Pro"
+                    description: "Silla con soporte lumbar ajustable, brazos 3D y malla premium."
+                    category: "Hogar"
+                    price: 180.00
+                    tags: ["muebles", "oficina", "ergonomía", "premium"]
+                    inStock: false
+                    specifications:
+                      material: "Malla premium y aluminio"
+                      carga_maxima: "150 kg"
+                    ratings: []
         404:
           description: Producto no encontrado
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                noEncontrado:
+                  summary: Producto inexistente
+                  value:
+                    message: "Producto no encontrado al intentar actualizar"
+                    code: "PRODUCT_NOT_FOUND"
 
     patch:
       tags:
@@ -451,12 +660,18 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateProductRequest"
+            examples:
+              parcial:
+                summary: Marcar producto como fuera de stock
+                value:
+                  inStock: false
       responses:
         200:
           description: Producto actualizado exitosamente
@@ -464,12 +679,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
+              examples:
+                actualizado:
+                  summary: Producto tras update parcial
+                  value:
+                    id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    name: "Laptop Dell XPS 13"
+                    description: "Laptop ultraligera de 13 pulgadas con procesador Intel Core i7 y 16GB de RAM."
+                    category: "Electrónica"
+                    price: 1299.99
+                    tags: ["laptop", "computadora", "dell", "tecnología"]
+                    inStock: false
+                    specifications:
+                      color: "Plata"
+                      peso: "1.2 kg"
+                      pantalla: "OLED"
+                    ratings:
+                      - score: 5
+                        comment: "Excelente producto, superó mis expectativas."
         404:
           description: Producto no encontrado
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                noEncontrado:
+                  summary: Producto inexistente
+                  value:
+                    message: "Producto no encontrado al intentar actualizar"
+                    code: "PRODUCT_NOT_FOUND"
 
     delete:
       tags:
@@ -483,6 +722,7 @@ paths:
           schema:
             type: string
             format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
       responses:
         204:
           description: Producto eliminado exitosamente (sin contenido)
@@ -492,3 +732,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                noEncontrado:
+                  summary: Producto inexistente
+                  value:
+                    message: "Producto no encontrado al intentar eliminar"
+                    code: "PRODUCT_NOT_FOUND"
