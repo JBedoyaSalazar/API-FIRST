@@ -3,6 +3,9 @@ import YAML from "yamljs";
 import swaggerUi from "swagger-ui-express";
 import OpenApiValidator from 'express-openapi-validator';
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
+
+const SECRET_KEY = "mi_super_secreto";
 
 const app = express();
 const port = 3000;
@@ -15,7 +18,22 @@ app.use(OpenApiValidator.middleware({
     apiSpec: swaggerDocument,
     validateRequests: true,
     validateResponses: true,
-    ignorePaths: /.*\/docs/
+    ignorePaths: /.*\/docs/,
+    validateSecurity: {
+        handlers: {
+            JWT: (req, scopes, schema) => {
+                const authHeader = req.headers.authorization;
+                if (!authHeader) throw { status: 401, message: "Token no provisto" };
+                const token = authHeader.split(" ")[1];
+                try {
+                    jwt.verify(token, SECRET_KEY);
+                    return true;
+                } catch (e) {
+                    throw { status: 401, message: "Token inválido" };
+                }
+            }
+        }
+    }
 }));
 
 app.use((err, req, res, next) => {
@@ -52,30 +70,35 @@ const users = [
     name: "Juan Pérez",
     age: 24,
     email: "juan.perez@example.com",
+    password: "123456"
   },
   {
     id: "1a2e8c66-90b4-468f-ae6d-f64b80a6a8c4",
     name: "María Gómez",
     age: 31,
     email: "maria.gomez@example.com",
+    password: "123456"
   },
   {
     id: "f8a4d63d-28df-4d89-a8e5-4ec3d9a9b2f1",
     name: "Carlos Rodríguez",
     age: 42,
     email: "carlos.rodriguez@example.com",
+    password: "123456"
   },
   {
     id: "8f7e5c1d-9b8a-41d6-82b4-3bfcfbde7e54",
     name: "Laura Martínez",
     age: 27,
     email: "laura.martinez@example.com",
+    password: "123456"
   },
   {
     id: "b3d91d4f-1d4c-4df9-b8b0-7d6d5d8d98e2",
     name: "Andrés Ramírez",
     age: 36,
     email: "andres.ramirez@example.com",
+    password: "123456"
   },
 ];
 
@@ -117,15 +140,18 @@ const products = [
 ];
 
 app.post("/users", (req, res) => {
-    const { name, age, email } = req.body;
+    const { name, age, email, password } = req.body;
     const newUser = {
         id: crypto.randomUUID(),
         name,
         age,
-        email
+        email,
+        password
     };
     users.push(newUser);
-    res.status(201).json(newUser);
+    
+    const { password: _, ...userWithoutPassword } = newUser;
+    res.status(201).json(userWithoutPassword);
 });
 
 app.get("/users/:id", (req, res) => {
@@ -137,7 +163,8 @@ app.get("/users/:id", (req, res) => {
             code: "USER_NOT_FOUND"
         });
     }
-    res.json(user);
+    const { password, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
 });
 
 app.patch("/users/:id", (req, res) => {
@@ -159,7 +186,23 @@ app.patch("/users/:id", (req, res) => {
     };
     
     users[userIndex] = updatedUser;
-    res.json(updatedUser);
+    const { password, ...userWithoutPassword } = updatedUser;
+    res.json(userWithoutPassword);
+});
+
+app.post("/auth/login", (req, res) => {
+    const { email, password } = req.body;
+    const user = users.find(u => u.email === email && u.password === password);
+    
+    if (!user) {
+        return res.status(401).json({
+            message: "Email o contraseña incorrectos",
+            code: "UNAUTHORIZED"
+        });
+    }
+    
+    const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '1h' });
+    res.json({ token });
 });
 
 app.get("/products", (req, res) => {

@@ -65,6 +65,7 @@ components:
         - name
         - age
         - email
+        - password
       properties:
         name:
           type: string
@@ -84,6 +85,12 @@ components:
           description: Correo electrónico
           format: email
           example: "carlos.lopez@empresa.com"
+
+        password:
+          type: string
+          description: Contraseña del usuario
+          minLength: 6
+          example: "123456"
 
     UpdateUserRequest:
       type: object
@@ -291,7 +298,72 @@ components:
             material: "Malla premium y aluminio"
             carga_maxima: "150 kg"
 
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "juan.perez@example.com"
+        password:
+          type: string
+          example: "123456"
+
+    LoginResponse:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhMmU4YzY2LTkw..."
+
+  securitySchemes:
+    JWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - JWT: []
+
+
 paths:
+  /auth/login:
+    post:
+      tags:
+        - users
+      summary: Autenticación de usuario
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        200:
+          description: "Autenticación exitosa"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        401:
+          description: "Credenciales inválidas"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                noAutorizado:
+                  summary: Credenciales incorrectas
+                  value:
+                    message: "Email o contraseña incorrectos"
+                    code: "UNAUTHORIZED"
+
   /: 
     get:
       summary: Welcome
