@@ -1,13 +1,33 @@
 openapi: 3.1.1
 info:
-  title: "API First"
-  version: "1.0.0"
+  title: "FAKEAPI STORE"
+  version: "1.2.3"
   description: "Creando una API FIRST con el curso de platzi"
+  contact:
+    name: "Jefred"
+    email: "mail@example.com"
+  license:
+    name: "MIT"
+    url: "https://opensource.org/licenses/MIT"
+
 servers:
   - url: "http://localhost:3000/v1"
     description: "Local server Version 1 de API"
   - url: "http://localhost:3000/v2"
     description: "Local server Version 2 de API"
+
+tags:
+  - name: users
+    description: Operaciones relacionadas con usuarios
+    externalDocs:
+      description: Documentación externa de usuarios
+      url: https://ejemplo.com/usuarios
+  
+  - name: products
+    description: Operaciones relacionadas con productos
+    externalDocs:
+      description: Documentación externa de productos
+      url: https://ejemplo.com/productos
 
 components:
   schemas:
@@ -252,6 +272,8 @@ paths:
   
   /users:
     post:
+      tags:
+        - users
       summary: Crea un usuario
       requestBody:
         required: true
@@ -269,6 +291,8 @@ paths:
   
   /users/{id}:
     get:
+      tags:
+        - users
       summary: Obtiene un usuario por id
       parameters:
         - in: path
@@ -293,6 +317,8 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
     patch:
+      tags:
+        - users
       summary: Actualiza parcialmente un usuario
       parameters:
         - in: path
@@ -324,6 +350,8 @@ paths:
 
   /products:
     get:
+      tags:
+        - products
       summary: Obtiene todos los productos
       responses:
         200:
@@ -335,6 +363,8 @@ paths:
                 items:
                   $ref: "#/components/schemas/Product"
     post:
+      tags:
+        - products
       summary: Crea un producto
       requestBody:
         required: true
@@ -352,6 +382,8 @@ paths:
 
   /products/{id}:
     get:
+      tags:
+        - products
       summary: Obtiene un producto por id
       parameters:
         - in: path
@@ -376,6 +408,8 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
     put:
+      tags:
+        - products
       summary: Reemplaza completamente un producto
       parameters:
         - in: path
@@ -406,6 +440,8 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
     patch:
+      tags:
+        - products
       summary: Actualiza parcialmente un producto
       parameters:
         - in: path
@@ -436,6 +472,8 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
     delete:
+      tags:
+        - products
       summary: Elimina un producto
       parameters:
         - in: path
