@@ -2,6 +2,7 @@ import express from "express";
 import YAML from "yamljs";
 import swaggerUi from "swagger-ui-express";
 import OpenApiValidator from 'express-openapi-validator';
+import crypto from "crypto";
 
 const app = express();
 const port = 3000;
@@ -27,8 +28,8 @@ app.use((err, req, res, next) => {
 
 app.get("/", (req, res) => {
     res.send(`
-        <h1>Welcome to my API</h1>
-        `)
+         <h1>Welcome to my API</h1>
+         `)
 })
 
 
@@ -68,6 +69,43 @@ const users = [
     age: 36,
     email: "andres.ramirez@example.com",
   },
+];
+
+// In-memory products database
+const products = [
+    {
+        id: "d3b07384-d113-49c3-a5f1-39d20c5b5212",
+        name: "Teclado Mecánico",
+        description: "Teclado mecánico RGB con switches switch azul",
+        category: "Electrónica",
+        price: 59.99,
+        tags: ["teclado", "rgb", "gamer"],
+        inStock: true,
+        specifications: {
+            idioma: "Español",
+            conexion: "USB"
+        },
+        ratings: []
+    },
+    {
+        id: "e5a6b8c9-21d3-4e8a-bf90-1c2d3e4f5a6b",
+        name: "Camiseta Deportiva",
+        description: "Camiseta dry-fit para entrenamiento",
+        category: "Ropa",
+        price: 20,
+        tags: ["deporte", "ropa", "fit"],
+        inStock: true,
+        specifications: {
+            talla: "M",
+            material: "Poliéster"
+        },
+        ratings: [
+            {
+                score: 5,
+                comment: "Excelente calidad y comodidad."
+            }
+        ]
+    }
 ];
 
 app.post("/users", (req, res) => {
@@ -114,6 +152,91 @@ app.patch("/users/:id", (req, res) => {
     
     users[userIndex] = updatedUser;
     res.json(updatedUser);
+});
+
+app.get("/products", (req, res) => {
+    res.json(products);
+});
+
+app.post("/products", (req, res) => {
+    const productData = req.body;
+    const newProduct = {
+        id: crypto.randomUUID(),
+        ...productData,
+        ratings: productData.ratings || []
+    };
+    products.push(newProduct);
+    res.status(201).json(newProduct);
+});
+
+app.get("/products/:id", (req, res) => {
+    const { id } = req.params;
+    const product = products.find(p => p.id === id);
+    if (!product) {
+        return res.status(404).json({
+            message: "Producto no encontrado",
+            code: "PRODUCT_NOT_FOUND"
+        });
+    }
+    res.json(product);
+});
+
+app.put("/products/:id", (req, res) => {
+    const { id } = req.params;
+    const productIndex = products.findIndex(p => p.id === id);
+    if (productIndex === -1) {
+        return res.status(404).json({
+            message: "Producto no encontrado",
+            code: "PRODUCT_NOT_FOUND"
+        });
+    }
+
+    const replacementData = req.body;
+
+    const replacedProduct = {
+        id,
+        ...replacementData,
+        ratings: replacementData.ratings || products[productIndex].ratings || []
+    };
+
+    products[productIndex] = replacedProduct;
+    res.json(replacedProduct);
+});
+
+app.patch("/products/:id", (req, res) => {
+    const { id } = req.params;
+    const productIndex = products.findIndex(p => p.id === id);
+    if (productIndex === -1) {
+        return res.status(404).json({
+            message: "Producto no encontrado",
+            code: "PRODUCT_NOT_FOUND"
+        });
+    }
+
+    const updates = req.body;
+    const currentProduct = products[productIndex];
+
+    const updatedProduct = {
+        ...currentProduct,
+        ...updates
+    };
+
+    products[productIndex] = updatedProduct;
+    res.json(updatedProduct);
+});
+
+app.delete("/products/:id", (req, res) => {
+    const { id } = req.params;
+    const productIndex = products.findIndex(p => p.id === id);
+    if (productIndex === -1) {
+        return res.status(404).json({
+            message: "Producto no encontrado",
+            code: "PRODUCT_NOT_FOUND"
+        });
+    }
+
+    products.splice(productIndex, 1);
+    res.status(204).end();
 });
 
 app.listen(port, () => {
