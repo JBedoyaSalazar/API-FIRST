@@ -5,15 +5,36 @@ import OpenApiValidator from 'express-openapi-validator';
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 
+/**
+ * Clave secreta utilizada para firmar y verificar los JSON Web Tokens.
+ *
+ * @type {string}
+ * @todo Migrar a variable de entorno antes de desplegar en producción.
+ */
 const SECRET_KEY = "mi_super_secreto";
 
 const app = express();
 const port = 3000;
 
+/**
+ * Contrato OpenAPI cargado desde el archivo YAML.
+ * Actúa como fuente de verdad para la validación automática de requests,
+ * responses y seguridad, y como fuente de la documentación Swagger UI.
+ *
+ * @type {object}
+ */
 const swaggerDocument = YAML.load("./openapi.yaml");
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(express.json())
 
+/**
+ * Middleware de validación automática contra el contrato OpenAPI.
+ *
+ * - validateRequests: valida el body, path params y headers antes del handler.
+ * - validateResponses: valida la respuesta antes de enviarla al cliente.
+ * - validateSecurity: intercepta peticiones a rutas protegidas y verifica el JWT.
+ * - ignorePaths: excluye las rutas de Swagger UI de la validación.
+ */
 app.use(OpenApiValidator.middleware({
     apiSpec: swaggerDocument,
     validateRequests: true,
@@ -21,6 +42,16 @@ app.use(OpenApiValidator.middleware({
     ignorePaths: /.*\/docs/,
     validateSecurity: {
         handlers: {
+            /**
+             * Handler de seguridad para el esquema `JWT` definido en el contrato.
+             * Se invoca automáticamente en cada petición a un endpoint con seguridad JWT activa.
+             *
+             * @param {import('express').Request} req - Objeto de petición de Express.
+             * @param {string[]} scopes - Scopes requeridos por la operación (no utilizados).
+             * @param {object} schema - Definición del esquema de seguridad desde el contrato.
+             * @returns {true} Si el token es válido.
+             * @throws {{ status: number, message: string }} Si el token está ausente o es inválido.
+             */
             JWT: (req, scopes, schema) => {
                 const authHeader = req.headers.authorization;
                 if (!authHeader) throw { status: 401, message: "Token no provisto" };
@@ -36,6 +67,16 @@ app.use(OpenApiValidator.middleware({
     }
 }));
 
+/**
+ * Middleware global de manejo de errores.
+ * Captura cualquier error lanzado por el validador o por los route handlers
+ * y lo serializa como JSON con el código de estado correspondiente.
+ *
+ * @param {object} err - Objeto de error (puede provenir del validador OpenAPI o del código).
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
 app.use((err, req, res, next) => {
     res.status(err.status || 500).json({
         message: err.message,
@@ -44,6 +85,12 @@ app.use((err, req, res, next) => {
     });
 });
 
+/**
+ * GET /v1/ — Página de bienvenida.
+ * Devuelve HTML de bienvenida al ingresar a la raíz del servidor v1.
+ *
+ * @route GET /v1/
+ */
 app.get("/v1/", (req, res) => {
     res.send(`
          <h1>Welcome to my API</h1>
@@ -51,10 +98,24 @@ app.get("/v1/", (req, res) => {
 })
 
 
+/**
+ * GET /v1/hello — Endpoint de salud en versión 1.
+ * Devuelve un mensaje JSON simple.
+ *
+ * @route GET /v1/hello
+ * @returns {{ message: string }}
+ */
 app.get("/v1/hello", (req, res) => {
     res.json({ message: "Hello World" });
 });
 
+/**
+ * GET /v2/hello — Endpoint de salud en versión 2.
+ * Devuelve un mensaje JSON con la versión y la hora actual del servidor.
+ *
+ * @route GET /v2/hello
+ * @returns {{ message: string, version: string, time: string }}
+ */
 app.get("/v2/hello", (req, res) => {
     res.json({ 
         message: "Hello World V2",
@@ -63,7 +124,15 @@ app.get("/v2/hello", (req, res) => {
      });
 });
 
-// In-memory users database
+/**
+ * Base de datos en memoria de usuarios.
+ * Persiste solo durante la vida del proceso Node.js.
+ *
+ * Cada usuario almacena su `password` internamente, pero ésta se omite
+ * en todas las respuestas mediante destructuring.
+ *
+ * @type {Array<{ id: string, name: string, age: number, email: string, password: string }>}
+ */
 const users = [
     {
     id: "6d4b4df7-cb9c-4f7b-b1d2-6c2fdd9c7d3b",
@@ -102,7 +171,22 @@ const users = [
   },
 ];
 
-// In-memory products database
+/**
+ * Base de datos en memoria de productos.
+ * Persiste solo durante la vida del proceso Node.js.
+ *
+ * @type {Array<{
+ *   id: string,
+ *   name: string,
+ *   description?: string,
+ *   category: string,
+ *   price: number,
+ *   tags: string[],
+ *   inStock: boolean,
+ *   specifications?: Record<string, string>,
+ *   ratings: Array<{ score: number, comment: string }>
+ * }>}
+ */
 const products = [
     {
         id: "d3b07384-d113-49c3-a5f1-39d20c5b5212",
@@ -139,6 +223,14 @@ const products = [
     }
 ];
 
+/**
+ * POST /users — Crea un nuevo usuario.
+ * La password se almacena internamente pero se omite en la respuesta.
+ *
+ * @route POST /users
+ * @body {CreateUserRequest} name, age, email, password
+ * @returns {User} 201 — El usuario creado sin el campo `password`.
+ */
 app.post("/users", (req, res) => {
     const { name, age, email, password } = req.body;
     const newUser = {
@@ -154,6 +246,14 @@ app.post("/users", (req, res) => {
     res.status(201).json(userWithoutPassword);
 });
 
+/**
+ * GET /users/:id — Obtiene un usuario por su UUID.
+ *
+ * @route GET /users/:id
+ * @param {string} req.params.id - UUID del usuario.
+ * @returns {User} 200 — El usuario encontrado sin el campo `password`.
+ * @returns {ErrorResponse} 404 — Si el usuario no existe.
+ */
 app.get("/users/:id", (req, res) => {
     const { id } = req.params;
     const user = users.find(u => u.id === id);
@@ -167,6 +267,16 @@ app.get("/users/:id", (req, res) => {
     res.json(userWithoutPassword);
 });
 
+/**
+ * PATCH /users/:id — Actualiza parcialmente un usuario.
+ * Solo los campos enviados en el body se modifican; el resto se conserva.
+ *
+ * @route PATCH /users/:id
+ * @param {string} req.params.id - UUID del usuario.
+ * @body {UpdateUserRequest} Campos opcionales: name, age, email.
+ * @returns {User} 200 — El usuario actualizado sin el campo `password`.
+ * @returns {ErrorResponse} 404 — Si el usuario no existe.
+ */
 app.patch("/users/:id", (req, res) => {
     const { id } = req.params;
     const userIndex = users.findIndex(u => u.id === id);
@@ -190,6 +300,15 @@ app.patch("/users/:id", (req, res) => {
     res.json(userWithoutPassword);
 });
 
+/**
+ * POST /auth/login — Autentica un usuario y devuelve un JWT.
+ * Este endpoint es público: no requiere autenticación previa.
+ *
+ * @route POST /auth/login
+ * @body {LoginRequest} email, password
+ * @returns {LoginResponse} 200 — El token JWT firmado, con expiración de 1 hora.
+ * @returns {ErrorResponse} 401 — Si las credenciales son incorrectas.
+ */
 app.post("/auth/login", (req, res) => {
     const { email, password } = req.body;
     const user = users.find(u => u.email === email && u.password === password);
@@ -205,10 +324,24 @@ app.post("/auth/login", (req, res) => {
     res.json({ token });
 });
 
+/**
+ * GET /products — Devuelve todos los productos.
+ *
+ * @route GET /products
+ * @returns {Product[]} 200 — Array con todos los productos en memoria.
+ */
 app.get("/products", (req, res) => {
     res.json(products);
 });
 
+/**
+ * POST /products — Crea un nuevo producto.
+ * El campo `ratings` se inicializa como array vacío si no se proporciona.
+ *
+ * @route POST /products
+ * @body {CreateProductRequest} name, category, price, inStock y campos opcionales.
+ * @returns {Product} 201 — El producto creado con su ID generado.
+ */
 app.post("/products", (req, res) => {
     const productData = req.body;
     const newProduct = {
@@ -220,6 +353,14 @@ app.post("/products", (req, res) => {
     res.status(201).json(newProduct);
 });
 
+/**
+ * GET /products/:id — Obtiene un producto por su UUID.
+ *
+ * @route GET /products/:id
+ * @param {string} req.params.id - UUID del producto.
+ * @returns {Product} 200 — El producto encontrado.
+ * @returns {ErrorResponse} 404 — Si el producto no existe.
+ */
 app.get("/products/:id", (req, res) => {
     const { id } = req.params;
     const product = products.find(p => p.id === id);
@@ -232,6 +373,16 @@ app.get("/products/:id", (req, res) => {
     res.json(product);
 });
 
+/**
+ * PUT /products/:id — Reemplaza completamente un producto existente.
+ * El campo `ratings` se conserva del producto anterior si no se envía en el body.
+ *
+ * @route PUT /products/:id
+ * @param {string} req.params.id - UUID del producto.
+ * @body {CreateProductRequest} Todos los campos requeridos del producto.
+ * @returns {Product} 200 — El producto reemplazado.
+ * @returns {ErrorResponse} 404 — Si el producto no existe.
+ */
 app.put("/products/:id", (req, res) => {
     const { id } = req.params;
     const productIndex = products.findIndex(p => p.id === id);
@@ -254,6 +405,16 @@ app.put("/products/:id", (req, res) => {
     res.json(replacedProduct);
 });
 
+/**
+ * PATCH /products/:id — Actualiza parcialmente un producto.
+ * Solo los campos enviados en el body se modifican; el resto se conserva.
+ *
+ * @route PATCH /products/:id
+ * @param {string} req.params.id - UUID del producto.
+ * @body {UpdateProductRequest} Campos opcionales del producto.
+ * @returns {Product} 200 — El producto actualizado.
+ * @returns {ErrorResponse} 404 — Si el producto no existe.
+ */
 app.patch("/products/:id", (req, res) => {
     const { id } = req.params;
     const productIndex = products.findIndex(p => p.id === id);
@@ -276,6 +437,14 @@ app.patch("/products/:id", (req, res) => {
     res.json(updatedProduct);
 });
 
+/**
+ * DELETE /products/:id — Elimina un producto.
+ *
+ * @route DELETE /products/:id
+ * @param {string} req.params.id - UUID del producto.
+ * @returns {void} 204 — Sin contenido si la eliminación fue exitosa.
+ * @returns {ErrorResponse} 404 — Si el producto no existe.
+ */
 app.delete("/products/:id", (req, res) => {
     const { id } = req.params;
     const productIndex = products.findIndex(p => p.id === id);
