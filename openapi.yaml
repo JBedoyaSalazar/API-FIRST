@@ -4,8 +4,10 @@ info:
   version: "1.0.0"
   description: "Creando una API FIRST con el curso de platzi"
 servers:
-  - url: "http://localhost:3000"
-    description: "Local server"
+  - url: "http://localhost:3000/v1"
+    description: "Local server Version 1 de API"
+  - url: "http://localhost:3000/v2"
+    description: "Local server Version 2 de API"
 
 components:
   schemas:

@@ -26,15 +26,23 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.get("/", (req, res) => {
+app.get("/v1/", (req, res) => {
     res.send(`
          <h1>Welcome to my API</h1>
          `)
 })
 
 
-app.get("/hello", (req, res) => {
+app.get("/v1/hello", (req, res) => {
     res.json({ message: "Hello World" });
+});
+
+app.get("/v2/hello", (req, res) => {
+    res.json({ 
+        message: "Hello World V2",
+        version: "v2",
+        time: new Date().toISOString() 
+     });
 });
 
 // In-memory users database
@@ -240,5 +248,7 @@ app.delete("/products/:id", (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Servidor corriendo en http://localhost:${port}`);
+    console.log(`Servidor corriendo en http://localhost:${port}/v1`);
+    console.log(`Servidor corriendo en http://localhost:${port}/v2`);
+    console.log(`Swagger: http://localhost:${port}/docs`);
 });
